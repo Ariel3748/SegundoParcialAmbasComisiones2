@@ -8,19 +8,10 @@ interface Props {
   post: Post;
 }
 
-function hashId(id: string): number {
-  let h = 0;
-  for (let i = 0; i < id.length; i++) {
-    h = ((h << 5) - h) + id.charCodeAt(i);
-    h |= 0;
-  }
-  return Math.abs(h);
-}
-
 export default function PostCard({ post }: Props) {
   const { user, refreshUser } = useAuth();
   const [vote, setVote] = useState<'up' | 'down' | null>(null);
-  const [score, setScore] = useState(() => (hashId(post._id || '1') % 200) + 1);
+  const [score, setScore] = useState(post.votes | 0);
   const [siguiendo, setSiguiendo] = useState(
     () => user !== null && post.author != null && typeof post.author === 'object' && user.following.some(
       (u) => (typeof u === 'string' ? u : u._id) === post.author._id

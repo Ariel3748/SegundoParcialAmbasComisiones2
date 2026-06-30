@@ -45,4 +45,5 @@ export interface Post {
   images: PostImage[];
   comments: Comment[];
   createdAt: string;
+  votes:number;
 }
