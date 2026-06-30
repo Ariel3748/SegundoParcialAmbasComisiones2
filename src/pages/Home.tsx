@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { apiService } from '../api/api';
 import PostCard from '../components/PostCard';
 import { useAuth } from '../hooks/useAuth';
 import type { Post, Tag, User } from '../types';
+
+const POSTS_POR_TANDA = 10;
 
 export default function Home() {
   const { user, refreshUser } = useAuth();
@@ -17,6 +19,12 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [siguiendoLoading, setSiguiendoLoading] = useState<string | null>(null);
 
+  // Cuántos posts mostramos en pantalla en este momento
+  const [visibles, setVisibles] = useState(POSTS_POR_TANDA);
+
+  // Referencia al elemento centinela (el div invisible al final de la lista)
+  const centinelaRef = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
     Promise.all([apiService.getPosts(), apiService.getTags(), apiService.getUsers()])
       .then(([postsData, tagsData, usersData]) => {
@@ -27,6 +35,12 @@ export default function Home() {
       .catch(err => console.error(err))
       .finally(() => setLoading(false));
   }, []);
+
+  // Cada vez que cambia el filtro o la búsqueda, reseteamos los visibles
+  // para que el usuario arranque desde arriba con la nueva lista
+  useEffect(() => {
+    setVisibles(POSTS_POR_TANDA);
+  }, [searchQuery, activeTag]);
 
   const usuariosSugeridos = usuarios.filter(u => {
     if (!user) return false;
@@ -53,10 +67,44 @@ export default function Home() {
     return matchesSearch && matchesTag;
   });
 
+  // Los posts que realmente se renderizan: solo los primeros `visibles`
+  const postsMostrados = filteredPosts.slice(0, visibles);
+  const hayMas = visibles < filteredPosts.length;
+
+  // Función que suma una tanda más cuando el centinela entra en pantalla
+  const cargarMas = useCallback(() => {
+    setVisibles(prev => prev + POSTS_POR_TANDA);
+  }, []);
+
+  // IntersectionObserver: observa el centinela y llama a cargarMas cuando es visible
+  useEffect(() => {
+    const centinela = centinelaRef.current;
+    if (!centinela) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // entries[0].isIntersecting es true cuando el centinela entra en la pantalla
+        if (entries[0].isIntersecting && hayMas) {
+          cargarMas();
+        }
+      },
+      {
+        // El observer se dispara cuando el centinela es al menos 10% visible
+        threshold: 1,
+      }
+    );
+
+    observer.observe(centinela);
+
+    // Limpieza: cuando el componente se desmonta o el efecto se re-ejecuta,
+    // dejamos de observar para no tener memory leaks
+    return () => observer.disconnect();
+  }, [hayMas, cargarMas]);
+
   return (
     <div className="container py-4" style={{ maxWidth: '1050px' }}>
       <div className="row g-3">
-        
+
         {/* Columna Izquierda: Los Posts */}
         <div className="col-lg-8">
           {searchQuery && (
@@ -73,11 +121,26 @@ export default function Home() {
               <p className="small mb-0">Probá buscando otra palabra o etiqueta.</p>
             </div>
           ) : (
-            filteredPosts.map(post => <PostCard key={post._id} post={post} />)
+            <>
+              {postsMostrados.map(post => <PostCard key={post._id} post={post} />)}
+
+              {/* Centinela: elemento invisible que el IntersectionObserver vigila.
+                  Cuando entra en pantalla, cargamos más posts. */}
+              <div ref={centinelaRef} className="text-center py-3">
+                {hayMas && (
+                  <div className="spinner-border spinner-border-sm" style={{ color: 'var(--reddit-orange)' }} />
+                )}
+                {!hayMas && filteredPosts.length > POSTS_POR_TANDA && (
+                  <p className="small mb-0" style={{ color: 'var(--reddit-muted)' }}>
+                    Ya viste todo 👀
+                  </p>
+                )}
+              </div>
+            </>
           )}
         </div>
 
-        {/* Columna Derecha: Sidebar informativa (Estilo Comunidades de Reddit) */}
+        {/* Columna Derecha: Sidebar */}
         <div className="col-lg-4 d-none d-lg-block">
           <div className="reddit-card overflow-hidden mb-3">
             <div className="p-3 text-white fw-bold" style={{ backgroundColor: 'var(--reddit-orange)', fontSize: '14px' }}>
@@ -95,7 +158,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Caja de Tags (Flairs Populares) */}
+          {/* Caja de Tags */}
           <div className="reddit-card p-3">
             <h6 className="fw-bold mb-3" style={{ fontSize: '12px', color: 'var(--reddit-muted)', textTransform: 'uppercase' }}>Filter by flairs</h6>
             <div className="d-flex flex-wrap gap-1">
@@ -151,7 +214,6 @@ export default function Home() {
               </div>
             </div>
           )}
-
         </div>
       </div>
     </div>
