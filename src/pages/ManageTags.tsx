@@ -1,6 +1,22 @@
 import { useEffect, useState, useRef } from 'react';
 import { apiService } from '../api/api';
 import type { Tag } from '../types';
+import { useToast } from '../hooks/useToast';
+import {Pencil, Trash3} from 'react-bootstrap-icons'
+
+
+
+
+{/*
+
+// adentro del componente:
+
+
+// donde antes tenías mostrarExito('Tag creada') en ManageTags.tsx:
+
+
+// donde tenías el alert('Error al eliminar...') en Profile.tsx:
+showToast('Error al eliminar la publicación', 'error');*/}
 
 export default function ManageTags() {
   const [tags, setTags] = useState<Tag[]>([]);
@@ -8,10 +24,9 @@ export default function ManageTags() {
   const [nuevoNombre, setNuevoNombre] = useState('');
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [editNombre, setEditNombre] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [exito, setExito] = useState<string | null>(null);
   const errorTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const exitoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { showToast } = useToast();
 
   useEffect(() => {
     return () => {
@@ -24,23 +39,14 @@ export default function ManageTags() {
     setLoading(true);
     apiService.getTags()
       .then(setTags)
-      .catch(err => setError(err.message))
+      .catch(err => showToast(err,'error'))
       .finally(() => setLoading(false));
   };
 
   useEffect(cargarTags, []);
 
-  const mostrarError = (msg: string) => {
-    setError(msg);
-    if (errorTimer.current) clearTimeout(errorTimer.current);
-    errorTimer.current = setTimeout(() => setError(null), 3000);
-  };
 
-  const mostrarExito = (msg: string) => {
-    setExito(msg);
-    if (exitoTimer.current) clearTimeout(exitoTimer.current);
-    exitoTimer.current = setTimeout(() => setExito(null), 3000);
-  };
+
 
   const handleCrear = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,10 +55,10 @@ export default function ManageTags() {
     try {
       await apiService.createTag(name);
       setNuevoNombre('');
-      mostrarExito(`Tag "#${name}" creada`);
+      showToast(`Tag "#${name}" creada`, 'success');
       cargarTags();
     } catch (err) {
-      mostrarError(err instanceof Error ? err.message : 'Error al crear');
+      showToast(err instanceof Error ? err.message : 'Error al crear', 'error')
     }
   };
 
@@ -63,10 +69,10 @@ export default function ManageTags() {
       await apiService.updateTag(id, name);
       setEditandoId(null);
       setEditNombre('');
-      mostrarExito('Tag actualizada');
+      showToast('Tag actualizado', 'success')
       cargarTags();
     } catch (err) {
-      mostrarError(err instanceof Error ? err.message : 'Error al editar');
+      showToast(err instanceof Error ? err.message : 'Error al editar', 'error')
     }
   };
 
@@ -74,10 +80,10 @@ export default function ManageTags() {
     if (!confirm('¿Eliminar esta etiqueta?\nLos posts que la usen dejarán de mostrarla.')) return;
     try {
       await apiService.deleteTag(id);
-      mostrarExito('Tag eliminada');
+      showToast('Tag eliminado','success')
       cargarTags();
     } catch (err) {
-      mostrarError(err instanceof Error ? err.message : 'Error al eliminar');
+      showToast(err instanceof Error ? err.message : 'Error al eliminar', 'error')
     }
   };
 
@@ -85,9 +91,6 @@ export default function ManageTags() {
     <div className="container my-4" style={{ maxWidth: '700px' }}>
       <div className="reddit-card p-4 mb-4">
         <h2 className="fw-bold mb-3" style={{ color: 'var(--reddit-text)' }}>Gestionar Etiquetas</h2>
-
-        {error && <div className="alert alert-danger py-2 small">{error}</div>}
-        {exito && <div className="alert alert-success py-2 small">{exito}</div>}
 
         <form onSubmit={handleCrear} className="d-flex gap-2 mb-4">
           <input
@@ -131,14 +134,14 @@ export default function ManageTags() {
                         style={{ color: 'var(--reddit-muted)' }}
                         onClick={() => { setEditandoId(tag._id); setEditNombre(tag.name); }}
                       >
-                        ✏️
+                        <Pencil size={16} color='var(--reddit-orange)'/>
                       </button>
                       <button
                         className="btn btn-sm border-0 px-2"
                         style={{ color: '#dc3545' }}
                         onClick={() => handleEliminar(tag._id)}
                       >
-                        🗑️
+                        <Trash3 size={16} color='grey'/>
                       </button>
                     </div>
                   </>
