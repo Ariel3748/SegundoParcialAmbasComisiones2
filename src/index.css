@@ -364,3 +364,101 @@ body.dark-mode ::selection {
 .dark-mode .text-dark {
   color: var(--reddit-text) !important;
 }
+
+/* ── Toasts ── */
+.toast-enter {
+  animation: toastSlideIn 0.2s ease-out;
+}
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+
+/* ── Theme Toggle Switch ── */
+ 
+.theme-toggle {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+ 
+/* El fondo tipo pill del switch */
+.theme-toggle__track {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 52px;
+  height: 28px;
+  border-radius: 999px;
+  background-color: #e0e0e0;
+  border: 1px solid var(--reddit-border);
+  transition: background-color 0.3s ease;
+  padding: 0 4px;
+  justify-content: space-between;
+}
+ 
+.theme-toggle__track--dark {
+  background-color: #3a3a4a;
+}
+ 
+/* Los íconos SVG dentro del pill */
+.theme-toggle__icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  transition: color 0.3s ease, opacity 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+ 
+.theme-toggle__icon--sun {
+  color: #f5a623;
+  opacity: 1;
+}
+ 
+/* Cuando está en dark mode, el sol se apaga un poco */
+.theme-toggle__track--dark .theme-toggle__icon--sun {
+  opacity: 0.4;
+}
+ 
+.theme-toggle__icon--moon {
+  color: #787c7e;
+  opacity: 0.4;
+}
+ 
+/* Cuando está en dark mode, la luna se ilumina */
+.theme-toggle__track--dark .theme-toggle__icon--moon {
+  color: #d7dadc;
+  opacity: 1;
+}
+ 
+/* El círculo que se desliza */
+.theme-toggle__thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  transition: transform 0.3s ease;
+  z-index: 2;
+}
+ 
+/* En dark mode el círculo se corre a la derecha */
+.theme-toggle__thumb--dark {
+  transform: translateX(24px);
+}
+ 

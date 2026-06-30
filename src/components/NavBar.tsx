@@ -1,12 +1,12 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { useTheme } from '../hooks/useTheme';
 import logoImg from '../assets/image.png';
+import ThemeToggle from './ThemeToggle';
+import '../index.css';
 
 export default function NavBar() {
   const { user } = useAuth();
-  const { darkMode, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [collapsed, setCollapsed] = useState(true);
@@ -21,9 +21,7 @@ export default function NavBar() {
 
   const renderAcciones = (mobile?: boolean) => (
     <div className={`d-flex align-items-center gap-2 ${mobile ? 'flex-column w-100 mt-2' : ''}`}>
-      <button onClick={toggleTheme} className="btn btn-sm rounded-circle p-1 border-0" style={{ fontSize: '18px', color: 'var(--reddit-muted)' }}>
-        {darkMode ? '☀️' : '🌙'}
-      </button>
+      <ThemeToggle />
       {user ? (
         <div className={`d-flex align-items-center gap-2 ${mobile ? 'w-100 justify-content-center' : ''}`}>
           <Link to="/create-post" className="btn btn-sm reddit-btn-orange">

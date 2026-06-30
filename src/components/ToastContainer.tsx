@@ -1,5 +1,6 @@
 import { CheckCircleFill, XCircleFill, InfoCircleFill, X } from 'react-bootstrap-icons';
 import type { ToastItem } from '../context/ToastContext';
+import '../index.css';
 
 interface Props {
   toasts: ToastItem[];
