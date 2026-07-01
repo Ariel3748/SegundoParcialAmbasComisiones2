@@ -103,6 +103,7 @@ export default function PostDetail() {
         author: comentarioCreado.author && typeof comentarioCreado.author === 'object'
           ? comentarioCreado.author
           : { _id: user._id, nickName: user.nickName },
+          text: comentarioCreado.text || nuevoComentario.trim()
       };
 
       setComments((prev) => [...prev, comentarioEstructurado]);
