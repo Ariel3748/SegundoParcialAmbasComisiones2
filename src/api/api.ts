@@ -70,11 +70,11 @@ export const apiService = {
     return response.json();
   },
 
-  updatePost: async (postId: string, description: string): Promise<Post> => {
+  updatePost: async (postId: string, description: string, author:any): Promise<Post> => {
     const response = await fetch(`${API_URL}/posts/${postId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ description }),
+      body: JSON.stringify({ description, author }),
     });
     if (!response.ok) {
       const errorData = await response.json();

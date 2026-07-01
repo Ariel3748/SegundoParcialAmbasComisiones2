@@ -33,7 +33,7 @@ export default function EditPost() {
 
     setSaving(true);
     try {
-      await apiService.updatePost(id, description.trim());
+      await apiService.updatePost(id, description.trim(), user?._id);
       navigate(`/post/${id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al guardar los cambios');
